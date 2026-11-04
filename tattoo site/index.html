@@ -934,7 +934,6 @@
             selectedHours = defaultHours;
             document.getElementById('hours-slider').value = defaultHours;
             
-            // Highlight active button
             const buttons = document.querySelectorAll('.placement-btn');
             buttons.forEach(b => {
                 b.classList.remove('active-option', 'border-white', 'bg-obsidian-800');
@@ -1039,8 +1038,8 @@
             }
         }
 
-        // Booking Submission Mock
-        function processBookingSubmission() {
+        // Booking Submission with Telegram Alert & Direct WhatsApp Negotiation
+        async function processBookingSubmission() {
             const name = document.getElementById('client-name').value;
             const email = document.getElementById('client-email').value;
 
@@ -1049,8 +1048,41 @@
                 return;
             }
 
-            const depositVal = currentCurrency === 'USD' ? '$100.00' : '£78.00';
-            alert(`Thank you, ${name}! Your request for a ${selectedHours}-hour session with ${selectedArtist} has been logged. Redirecting to payment gateway for the ${depositVal} deposit...`);
+            // 1. Telegram Bot Credentials (Replace with your BotFather token and chat ID)
+            const botToken = "9125135224:AAFFjkTbwg0CEy6-TWjw-dUqniaID2wAjGw"; 
+            const chatId = "8965398913";     
+
+            const telegramMessage = `🚨 *NEW AURA TATTOO INQUIRY* 🚨\n\n` +
+                `👤 *Client Name:* ${name}\n` +
+                `📧 *Email:* ${email}\n` +
+                `🎨 *Artist:* ${selectedArtist}\n` +
+                `📍 *Placement:* ${selectedPlacement}\n` +
+                `⏱️ *Session Hours:* ${selectedHours} Hours\n\n` +
+                `💬 *Status:* Redirected to WhatsApp for direct price negotiation.`;
+
+            // Send notification silently to Telegram in background
+            try {
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: telegramMessage,
+                        parse_mode: "Markdown"
+                    })
+                });
+            } catch (error) {
+                console.error("Telegram alert failed:", error);
+            }
+
+            // 2. Redirect straight to WhatsApp for direct price negotiation
+            const studioWhatsApp = "25474861830"; // Replace with your studio WhatsApp phone number (no + sign)
+            const waText = encodeURIComponent(
+                `Hello Aura Tattoo Atelier! ✒️\n\nMy name is ${name}. I just submitted a booking inquiry on your website for a ${selectedHours}-hour session with ${selectedArtist} (${selectedPlacement}).\n\nI'd like to discuss the design and negotiate pricing directly!`
+            );
+
+            alert(`Thank you, ${name}! Your request has been logged. Opening WhatsApp to discuss details and negotiate pricing directly...`);
+            window.location.href = `https://wa.me/${studioWhatsApp}?text=${waText}`;
         }
 
         // Contact Form Mock
